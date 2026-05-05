@@ -1,5 +1,10 @@
 import { useAuth } from "@clerk/clerk-react"
 
+
+// 从环境变量读取 API 基础地址
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api"
+
+
 export const useApi = () => {
     const { getToken } = useAuth()
 
@@ -15,7 +20,7 @@ export const useApi = () => {
 
             console.log(`API Request: ${endpoint}`, options)
 
-            const response = await fetch(`http://localhost:8000/api/${endpoint}`, {
+            const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                 ...defaultOptions,
                 ...options,
             })
