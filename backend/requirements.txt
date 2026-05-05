@@ -4,3 +4,4 @@ sqlalchemy
 python-dotenv
 openai
 clerk-backend-api
+svix
