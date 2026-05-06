@@ -144,23 +144,25 @@ async def my_history(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/quota")
 async def get_quota(request: Request, db: Session = Depends(get_db)):
-    user_details = authenticate_and_get_user_details(request)
-    user_id = user_details.get("user_id")
-
-    quota = get_challenge_quota(db, user_id)
-    if not quota:
+    import traceback
+    try:
+        user_details = authenticate_and_get_user_details(request)
+        user_id = user_details.get("user_id")
+        # ... 这里是你的原有逻辑 ...
+        quota = get_challenge_quota(db, user_id)
+        # ... 等等 ...
         return {
-            "user_id": user_id,
-            "quota_remaining": 0,
-            "last_reset_data": datetime.now().isoformat()
+            "quota_remaining": quota.quota_remaining,
+            "last_reset_data": quota.last_reset_date.isoformat()
         }
-
-    quota = reset_quota_if_needed(db, quota)
-    return {
-        "user_id": quota.user_id,
-        "quota_remaining": quota.quota_remaining,
-        "last_reset_data": quota.last_reset_date.isoformat()
-    }
+    except Exception as e:
+        # 关键：把完整的错误堆栈打印到 Render 的日志里
+        print("="*50)
+        print("ERROR IN /api/quota:")
+        traceback.print_exc()
+        print("="*50)
+        # 也可以临时返回具体的错误信息给前端，方便调试
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/search/{share_key}")
