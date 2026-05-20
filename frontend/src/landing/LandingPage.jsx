@@ -276,7 +276,7 @@ export function LandingPage() {
           </Link>
 
           {/* CREATE ACCOUNT 按钮 */}
-          <Link to="/sign-up">
+          <Link to="/sign-in">
             <motion.button
               style={{
                 padding: "10px 24px",
