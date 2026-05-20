@@ -33,7 +33,7 @@ export function Layout() {
                             color: "#2D3748",
                         }}
                     >
-                        PEMANCAR
+                        PemancarQ-AI
                     </span>
 
                     <nav style={{ marginLeft: "auto" }}>
