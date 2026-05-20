@@ -135,7 +135,7 @@ export function LandingPage() {
               fontFamily: "'Times New Roman', Times, serif",
             }}
           >
-            PEMANCAR
+            PemancarQ-AI
           </span>
         </div>
 
