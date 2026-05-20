@@ -15,7 +15,7 @@ def authenticate_and_get_user_details(request):
             AuthenticateRequestOptions(
                 authorized_parties=[
                     "http://localhost:5173",
-                    "https://pemancar-frontend.onrender.com"
+                    "https://pemancarq-ai.zeabur.app/"
                 ]
             )
         )
