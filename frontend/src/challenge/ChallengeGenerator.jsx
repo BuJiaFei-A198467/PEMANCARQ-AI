@@ -1328,7 +1328,7 @@ const saveToHistory = () => {
 
 
     <div className={`step-container ${animationClass}`}>
-        <h3>Step 5: Determine static element</h3>
+        <h3>Step 5: Determine static and non-static element</h3>
 
         <div style={{marginTop: '0px', padding: '15px', backgroundColor: '#f0f7ff', borderRadius: '8px'}}>
             <p style={{margin: 0, color: '#2272C3', fontSize: '16px'}}>
