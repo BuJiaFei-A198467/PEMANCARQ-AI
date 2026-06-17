@@ -148,7 +148,7 @@ const programmingElementsGroups = [
             { number: 3, label: "Optional Elements", type: "construction" },
             { number: 4, label: "Preview", type: "construction" },
             { number: 5, label: "Static Elements", type: "setting" },
-            { number: 6, label: "Question Number", type: "setting" }
+            { number: 6, label: "Number of Variants", type: "setting" }
         ];
 
         return (
