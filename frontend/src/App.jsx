@@ -16,8 +16,8 @@ function App() {
             <Route path="/landing" element={<LandingPage />} />
 
             {/* 认证页面 - 使用 Clerk 建议的路由结构 */}
-            <Route path="/sign-in" element={<AuthenticationPage mode="sign-in" />} />
-            <Route path="/sign-up" element={<AuthenticationPage mode="sign-up" />} />
+            <Route path="/sign-in/*" element={<AuthenticationPage mode="sign-in" />} />
+            <Route path="/sign-up/*" element={<AuthenticationPage mode="sign-up" />} />
 
             {/* 主应用路由 - 需要登录才能访问 */}
             <Route element={<Layout />}>
