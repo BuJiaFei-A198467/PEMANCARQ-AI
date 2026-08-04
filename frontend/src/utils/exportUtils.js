@@ -546,6 +546,17 @@ export const exportToPDF = async (data, staticElements = []) => {
                 yPosition += 5;
             }
 
+            const addListItems = (items, title) => {
+                if (!items || items.length === 0) return;
+                addAttributeTitle(title);
+                items.forEach((item, index) => {
+                    addAttributeContent(`${index + 1}. ${sanitizeText(item)}`, 11, 10);
+                });
+                yPosition += 3;
+            };
+
+            addListItems(challenge.task_list, "Tasks");
+
             if (challenge.input_information && challenge.input_information !== "None") {
                 addAttributeTitle("Input Information");
                 addAttributeContent(challenge.input_information, 12);
@@ -564,16 +575,7 @@ export const exportToPDF = async (data, staticElements = []) => {
                 yPosition += 5;
             }
 
-            const addListItems = (items, title) => {
-                if (!items || items.length === 0) return;
-                addAttributeTitle(title);
-                items.forEach((item, index) => {
-                    addAttributeContent(`${index + 1}. ${sanitizeText(item)}`, 11, 10);
-                });
-                yPosition += 3;
-            };
 
-            addListItems(challenge.task_list, "Tasks");
             addListItems(challenge.additional_functions, "Additional Functions");
             addListItems(challenge.additional_formulas, "Additional Formulas");
 
