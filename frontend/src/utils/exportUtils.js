@@ -540,98 +540,126 @@ export const exportToPDF = async (data, staticElements = []) => {
             yPosition = currentY + 10;
         };
 
-        // 添加 Input/Output 表格函数
-        const addInputOutputTable = (ioExample) => {
-            if (!ioExample || ioExample === "None") return;
-            
-            const parsed = parseInputOutputExample(ioExample);
-            if (!parsed || (!parsed.input && !parsed.output)) {
-                // 如果解析失败，使用原来的方式显示
-                addAttributeTitle("Input/Output Example");
-                addAttributeContent(ioExample, 12);
-                return;
-            }
-            
-            // 计算需要的空间
-            const maxWidth = 85; // 每列宽度
-            const fontSize = 10;
-            const lineHeight = fontSize * 0.353 * 1.2;
-            const cellPadding = 4;
-            const headerHeight = 8;
-            
-            // 分割文本为行
-            const inputLines = parsed.input ? parsed.input.split('\n') : [''];
-            const outputLines = parsed.output ? parsed.output.split('\n') : [''];
-            
-            // 计算最大行数
-            const maxLines = Math.max(inputLines.length, outputLines.length);
-            
-            // 添加标题
-            addAttributeTitle("Input/Output Example");
-            
-            // 检查是否需要新页
-            const neededHeight = headerHeight + (maxLines * lineHeight) + (cellPadding * 2) + 10;
-            checkNewPage(neededHeight);
-            
-            const startX = 20;
-            const startY = yPosition;
-            const tableWidth = 170; // 总宽度
-            
-            // 绘制表格边框
-            pdf.setDrawColor(0, 0, 0);
-            pdf.setLineWidth(0.1);
-            
-            // 绘制表头
-            pdf.setFillColor(240, 244, 255);
-            pdf.rect(startX, startY, tableWidth, headerHeight, 'F');
-            pdf.rect(startX, startY, tableWidth, headerHeight);
-            
-            // 绘制分隔线
-            pdf.line(startX + maxWidth, startY, startX + maxWidth, startY + headerHeight);
-            
-            // 表头文字
-            pdf.setFontSize(11);
-            pdf.setFont(undefined, 'bold');
-            pdf.setTextColor(40, 53, 147);
-            pdf.text("Input", startX + 5, startY + 6);
-            pdf.text("Output", startX + maxWidth + 5, startY + 6);
-            
-            // 计算数据区域高度
-            const dataHeight = maxLines * lineHeight + cellPadding * 2;
-            const dataStartY = startY + headerHeight;
-            
-            // 绘制数据区域边框
-            pdf.rect(startX, dataStartY, tableWidth, dataHeight);
-            pdf.line(startX + maxWidth, dataStartY, startX + maxWidth, dataStartY + dataHeight);
-            
-            // 填充数据
-            pdf.setFontSize(fontSize);
-            pdf.setFont(undefined, 'normal');
-            pdf.setTextColor(0, 0, 0);
-            
-            // 填充 Input 数据
-            inputLines.forEach((line, index) => {
-                if (index < maxLines) {
-                    const yPos = dataStartY + cellPadding + (index * lineHeight) + (lineHeight * 0.7);
-                    const wrappedLines = pdf.splitTextToSize(line.trim() || ' ', maxWidth - 10);
-                    // 只显示第一行，如果太长则截断
-                    const displayText = wrappedLines[0] || ' ';
-                    pdf.text(displayText, startX + 5, yPos);
-                }
-            });
-            
-            // 填充 Output 数据
-            outputLines.forEach((line, index) => {
-                if (index < maxLines) {
-                    const yPos = dataStartY + cellPadding + (index * lineHeight) + (lineHeight * 0.7);
-                    const wrappedLines = pdf.splitTextToSize(line.trim() || ' ', maxWidth - 10);
-                    const displayText = wrappedLines[0] || ' ';
-                    pdf.text(displayText, startX + maxWidth + 5, yPos);
-                }
-            });
-            
-            yPosition = dataStartY + dataHeight + 10;
-        };
+        // 添加 Input/Output 表格函数 - 修正版本
+const addInputOutputTable = (ioExample) => {
+    if (!ioExample || ioExample === "None") return;
+    
+    const parsed = parseInputOutputExample(ioExample);
+    if (!parsed || (!parsed.input && !parsed.output)) {
+        // 如果解析失败，使用原来的方式显示
+        addAttributeTitle("Input/Output Example");
+        addAttributeContent(ioExample, 12);
+        return;
+    }
+    
+    // 添加标题
+    addAttributeTitle("Input/Output Example");
+    
+    // 计算需要的空间
+    const colWidth = 80; // 每列宽度
+    const fontSize = 10;
+    const lineHeight = fontSize * 0.353 * 1.5;
+    const cellPadding = 3;
+    const headerHeight = 8;
+    
+    // 分割文本为行
+    const inputLines = parsed.input ? parsed.input.split('\n').filter(line => line.trim()) : [''];
+    const outputLines = parsed.output ? parsed.output.split('\n').filter(line => line.trim()) : [''];
+    
+    // 计算最大行数
+    const maxLines = Math.max(inputLines.length, outputLines.length);
+    
+    // 检查是否需要新页
+    const tableHeight = headerHeight + (maxLines * lineHeight) + (cellPadding * 2 * maxLines);
+    checkNewPage(tableHeight + 15);
+    
+    const startX = 25;
+    const startY = yPosition;
+    const totalWidth = colWidth * 2 + 10; // 两列 + 间距
+    
+    // 绘制表格边框和背景
+    pdf.setDrawColor(0, 0, 0);
+    pdf.setLineWidth(0.2);
+    
+    // 绘制表头背景
+    pdf.setFillColor(220, 235, 255);
+    pdf.rect(startX, startY, totalWidth, headerHeight, 'F');
+    pdf.rect(startX, startY, totalWidth, headerHeight);
+    
+    // 绘制表头分隔线
+    pdf.line(startX + colWidth + 5, startY, startX + colWidth + 5, startY + headerHeight);
+    
+    // 表头文字
+    pdf.setFontSize(11);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(40, 53, 147);
+    pdf.text("Input", startX + 5, startY + 6);
+    pdf.text("Output", startX + colWidth + 10, startY + 6);
+    
+    // 计算数据区域高度
+    const dataStartY = startY + headerHeight;
+    const dataHeight = maxLines * (lineHeight + cellPadding * 2);
+    
+    // 绘制数据区域边框和背景
+    pdf.setDrawColor(0, 0, 0);
+    pdf.setLineWidth(0.1);
+    
+    // 绘制数据区域外边框
+    pdf.rect(startX, dataStartY, totalWidth, dataHeight);
+    pdf.line(startX + colWidth + 5, dataStartY, startX + colWidth + 5, dataStartY + dataHeight);
+    
+    // 交替行颜色 - 绘制背景色
+    for (let i = 0; i < maxLines; i++) {
+        const rowY = dataStartY + i * (lineHeight + cellPadding * 2);
+        if (i % 2 === 0) {
+            pdf.setFillColor(248, 249, 250);
+            pdf.rect(startX, rowY, totalWidth, lineHeight + cellPadding * 2, 'F');
+        }
+        // 绘制行分隔线（除了最后一行）
+        if (i < maxLines - 1) {
+            pdf.setDrawColor(200, 200, 200);
+            pdf.line(startX, rowY + lineHeight + cellPadding * 2, startX + totalWidth, rowY + lineHeight + cellPadding * 2);
+        }
+    }
+    
+    // 重新绘制边框（确保边框在背景之上）
+    pdf.setDrawColor(0, 0, 0);
+    pdf.setLineWidth(0.1);
+    pdf.rect(startX, dataStartY, totalWidth, dataHeight);
+    pdf.line(startX + colWidth + 5, dataStartY, startX + colWidth + 5, dataStartY + dataHeight);
+    
+    // 填充数据
+    pdf.setFontSize(fontSize);
+    pdf.setFont(undefined, 'normal');
+    pdf.setTextColor(0, 0, 0);
+    
+    // 填充 Input 数据
+    inputLines.forEach((line, index) => {
+        if (index < maxLines) {
+            const yPos = dataStartY + cellPadding + (index * (lineHeight + cellPadding * 2)) + (lineHeight * 0.7);
+            const displayText = line.trim() || ' ';
+            // 如果文本太长，截断
+            const maxChars = 25;
+            const truncatedText = displayText.length > maxChars ? displayText.substring(0, maxChars) + '...' : displayText;
+            pdf.text(truncatedText, startX + 3, yPos);
+        }
+    });
+    
+    // 填充 Output 数据
+    outputLines.forEach((line, index) => {
+        if (index < maxLines) {
+            const yPos = dataStartY + cellPadding + (index * (lineHeight + cellPadding * 2)) + (lineHeight * 0.7);
+            const displayText = line.trim() || ' ';
+            // 如果文本太长，截断
+            const maxChars = 25;
+            const truncatedText = displayText.length > maxChars ? displayText.substring(0, maxChars) + '...' : displayText;
+            pdf.text(truncatedText, startX + colWidth + 10, yPos);
+        }
+    });
+    
+    // 更新 yPosition
+    yPosition = dataStartY + dataHeight + 10;
+};
 
         for (let i = 0; i < challenges.length; i++) {
             const challenge = challenges[i];
