@@ -55,6 +55,26 @@ const normalizeChallengesForExport = (data) => {
 };
 
 /**
+ * 解析 Input/Output Example 文本，提取 Input 和 Output 部分
+ * 假设格式为：
+ * <Sample Input>
+ * ... input content ...
+ * <Sample Output>
+ * ... output content ...
+ */
+const parseInputOutputExample = (text) => {
+    if (!text || text === "None") return null;
+    
+    const inputMatch = text.match(/<Sample Input>\s*([\s\S]*?)(?=<Sample Output>|$)/);
+    const outputMatch = text.match(/<Sample Output>\s*([\s\S]*?)$/);
+    
+    return {
+        input: inputMatch ? inputMatch[1].trim() : "",
+        output: outputMatch ? outputMatch[1].trim() : ""
+    };
+};
+
+/**
  * 导出为图片
  * @param {Array|Object} data - 挑战数据（数组或History的group对象）
  * @param {Array} staticElements - 静态元素列表（可选，Generator中使用）
@@ -352,7 +372,6 @@ export const exportToImage = async (data, staticElements = []) => {
                     color: ${labelColor};
                 `;
 
-
                 // 值
                 const value = document.createElement('div');
                 let valueText = '';
@@ -521,6 +540,99 @@ export const exportToPDF = async (data, staticElements = []) => {
             yPosition = currentY + 10;
         };
 
+        // 添加 Input/Output 表格函数
+        const addInputOutputTable = (ioExample) => {
+            if (!ioExample || ioExample === "None") return;
+            
+            const parsed = parseInputOutputExample(ioExample);
+            if (!parsed || (!parsed.input && !parsed.output)) {
+                // 如果解析失败，使用原来的方式显示
+                addAttributeTitle("Input/Output Example");
+                addAttributeContent(ioExample, 12);
+                return;
+            }
+            
+            // 计算需要的空间
+            const maxWidth = 85; // 每列宽度
+            const fontSize = 10;
+            const lineHeight = fontSize * 0.353 * 1.2;
+            const cellPadding = 4;
+            const headerHeight = 8;
+            
+            // 分割文本为行
+            const inputLines = parsed.input ? parsed.input.split('\n') : [''];
+            const outputLines = parsed.output ? parsed.output.split('\n') : [''];
+            
+            // 计算最大行数
+            const maxLines = Math.max(inputLines.length, outputLines.length);
+            
+            // 添加标题
+            addAttributeTitle("Input/Output Example");
+            
+            // 检查是否需要新页
+            const neededHeight = headerHeight + (maxLines * lineHeight) + (cellPadding * 2) + 10;
+            checkNewPage(neededHeight);
+            
+            const startX = 20;
+            const startY = yPosition;
+            const tableWidth = 170; // 总宽度
+            
+            // 绘制表格边框
+            pdf.setDrawColor(0, 0, 0);
+            pdf.setLineWidth(0.1);
+            
+            // 绘制表头
+            pdf.setFillColor(240, 244, 255);
+            pdf.rect(startX, startY, tableWidth, headerHeight, 'F');
+            pdf.rect(startX, startY, tableWidth, headerHeight);
+            
+            // 绘制分隔线
+            pdf.line(startX + maxWidth, startY, startX + maxWidth, startY + headerHeight);
+            
+            // 表头文字
+            pdf.setFontSize(11);
+            pdf.setFont(undefined, 'bold');
+            pdf.setTextColor(40, 53, 147);
+            pdf.text("Input", startX + 5, startY + 6);
+            pdf.text("Output", startX + maxWidth + 5, startY + 6);
+            
+            // 计算数据区域高度
+            const dataHeight = maxLines * lineHeight + cellPadding * 2;
+            const dataStartY = startY + headerHeight;
+            
+            // 绘制数据区域边框
+            pdf.rect(startX, dataStartY, tableWidth, dataHeight);
+            pdf.line(startX + maxWidth, dataStartY, startX + maxWidth, dataStartY + dataHeight);
+            
+            // 填充数据
+            pdf.setFontSize(fontSize);
+            pdf.setFont(undefined, 'normal');
+            pdf.setTextColor(0, 0, 0);
+            
+            // 填充 Input 数据
+            inputLines.forEach((line, index) => {
+                if (index < maxLines) {
+                    const yPos = dataStartY + cellPadding + (index * lineHeight) + (lineHeight * 0.7);
+                    const wrappedLines = pdf.splitTextToSize(line.trim() || ' ', maxWidth - 10);
+                    // 只显示第一行，如果太长则截断
+                    const displayText = wrappedLines[0] || ' ';
+                    pdf.text(displayText, startX + 5, yPos);
+                }
+            });
+            
+            // 填充 Output 数据
+            outputLines.forEach((line, index) => {
+                if (index < maxLines) {
+                    const yPos = dataStartY + cellPadding + (index * lineHeight) + (lineHeight * 0.7);
+                    const wrappedLines = pdf.splitTextToSize(line.trim() || ' ', maxWidth - 10);
+                    const displayText = wrappedLines[0] || ' ';
+                    pdf.text(displayText, startX + maxWidth + 5, yPos);
+                }
+            });
+            
+            yPosition = dataStartY + dataHeight + 10;
+        };
+
         for (let i = 0; i < challenges.length; i++) {
             const challenge = challenges[i];
 
@@ -540,12 +652,14 @@ export const exportToPDF = async (data, staticElements = []) => {
                 output_source: challenge.output_source
             });
 
+            // Description
             if (challenge.question_description && challenge.question_description !== "None") {
                 addAttributeTitle("Description");
                 addAttributeContent(challenge.question_description, 12);
                 yPosition += 5;
             }
 
+            // Tasks - 移到 Description 后面
             const addListItems = (items, title) => {
                 if (!items || items.length === 0) return;
                 addAttributeTitle(title);
@@ -557,26 +671,29 @@ export const exportToPDF = async (data, staticElements = []) => {
 
             addListItems(challenge.task_list, "Tasks");
 
+            // Input Information
             if (challenge.input_information && challenge.input_information !== "None") {
                 addAttributeTitle("Input Information");
                 addAttributeContent(challenge.input_information, 12);
                 yPosition += 5;
             }
 
+            // Output Information
             if (challenge.output_information && challenge.output_information !== "None") {
                 addAttributeTitle("Output Information");
                 addAttributeContent(challenge.output_information, 12);
                 yPosition += 5;
             }
 
+            // Input/Output Example - 使用表格格式
             if (challenge.input_output_example && challenge.input_output_example !== "None") {
-                addAttributeTitle("Input/Output Example");
-                addAttributeContent(challenge.input_output_example, 12);
-                yPosition += 5;
+                addInputOutputTable(challenge.input_output_example);
             }
 
-
+            // Additional Functions
             addListItems(challenge.additional_functions, "Additional Functions");
+
+            // Additional Formulas
             addListItems(challenge.additional_formulas, "Additional Formulas");
 
             if (i < challenges.length - 1) {
